@@ -111,6 +111,7 @@ func broadcastGroupMessages(group *Group) {
 	}
 }
 
+// main
 func main() {
 	listen, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
