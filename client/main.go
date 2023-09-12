@@ -2,22 +2,40 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"net"
 	"os"
 	"strings"
 )
 
-func main() {
-	fmt.Print("Enter server address (e.g., localhost:8080): ")
-	serverAddress := readInput()
+var (
+	username string
+	port     int
+)
 
-	conn, err := net.Dial("tcp", serverAddress)
+func init() {
+	flag.StringVar(&username, "username", "", "Your username")
+	flag.IntVar(&port, "port", 8080, "Port to connect to")
+}
+
+func main() {
+	// 사용자 이름과 포트 번호를 입력받음
+	flag.Parse()
+
+	if username == "" {
+		fmt.Println("Please provide a username using the -username flag.")
+		os.Exit(1)
+	}
+
+	conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
 		fmt.Println("Error connecting:", err.Error())
 		os.Exit(1)
 	}
 	defer conn.Close()
+
+	fmt.Fprintf(conn, "/setusername %s\n", username)
 
 	go func() {
 		for {
@@ -31,7 +49,7 @@ func main() {
 	}()
 
 	for {
-		fmt.Print("Enter command: ")
+		fmt.Print("> ")
 		command := readInput()
 
 		_, err := conn.Write([]byte(command + "\n"))

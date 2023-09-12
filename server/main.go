@@ -23,6 +23,8 @@ func handleClient(conn net.Conn) {
 	clientAddr := conn.RemoteAddr().String()
 	fmt.Printf("Client %s connected.\n", clientAddr)
 
+	var username string
+
 	conn.Write([]byte("Welcome to the chat server!\n"))
 	conn.Write([]byte("Enter '/join <group_name>' to join a group.\n"))
 
@@ -41,8 +43,11 @@ func handleClient(conn net.Conn) {
 
 		message := string(buffer[:n])
 		message = strings.TrimSpace(message)
-
-		if strings.HasPrefix(message, "/join ") {
+		if strings.HasPrefix(message, "/setusername ") {
+			username = strings.TrimPrefix(message, "/setusername")
+			username = strings.TrimSpace(username)
+			conn.Write([]byte(fmt.Sprintf("Your username has been set to: %s\n", username)))
+		} else if strings.HasPrefix(message, "/join ") {
 			groupName := strings.TrimPrefix(message, "/join ")
 			groupName = strings.TrimSpace(groupName)
 
@@ -53,7 +58,7 @@ func handleClient(conn net.Conn) {
 				mu.Unlock()
 				conn.Write([]byte(fmt.Sprintf("Joined group '%s'\n", groupName)))
 				go func() {
-					group.Messages <- fmt.Sprintf("Client %s joined the group.\n", clientAddr)
+					group.Messages <- fmt.Sprintf("%s %s joined the group.\n", username, clientAddr)
 				}()
 			} else {
 				mu.Unlock()
@@ -87,7 +92,7 @@ func handleClient(conn net.Conn) {
 			getGroupList(conn)
 		} else if currentGroup != nil {
 			go func() {
-				currentGroup.Messages <- fmt.Sprintf("Client %s: %s", clientAddr, message)
+				currentGroup.Messages <- fmt.Sprintf("%s %s: %s", username, clientAddr, message)
 			}()
 		} else {
 			conn.Write([]byte("Invalid command. Enter '/join <group_name>' to join a group or '/create <group_name>' to create a new group.\n"))
@@ -118,9 +123,9 @@ func getGroupList(conn net.Conn) {
 	defer mu.Unlock() // mutex 해제
 
 	if len(groups) == 0 {
-		conn.Write([]byte("채팅방이 존재하지 않습니다. \n"))
+		conn.Write([]byte("There are no group chat rooms🥲 \n"))
 	} else {
-		conn.Write([]byte("입장 가능한 채팅방 리스트 입니다. \n"))
+		conn.Write([]byte("Here is the list of available chat rooms🙌 \n"))
 		for groupName := range groups {
 			conn.Write([]byte("* " + groupName + "\n"))
 		}
