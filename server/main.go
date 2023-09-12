@@ -83,6 +83,8 @@ func handleClient(conn net.Conn) {
 				mu.Unlock()
 				conn.Write([]byte(fmt.Sprintf("Group '%s' already exists. Join it using '/join <group_name>'.\n", groupName)))
 			}
+		} else if strings.HasPrefix(message, "/list") {
+			getGroupList(conn)
 		} else if currentGroup != nil {
 			go func() {
 				currentGroup.Messages <- fmt.Sprintf("Client %s: %s", clientAddr, message)
@@ -111,7 +113,20 @@ func broadcastGroupMessages(group *Group) {
 	}
 }
 
-// main
+func getGroupList(conn net.Conn) {
+	mu.Lock()
+	defer mu.Unlock() // mutex 해제
+
+	if len(groups) == 0 {
+		conn.Write([]byte("채팅방이 존재하지 않습니다. \n"))
+	} else {
+		conn.Write([]byte("입장 가능한 채팅방 리스트 입니다. \n"))
+		for groupName := range groups {
+			conn.Write([]byte("* " + groupName + "\n"))
+		}
+	}
+}
+
 func main() {
 	listen, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
