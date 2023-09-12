@@ -11,8 +11,10 @@ type Group struct {
 	Messages chan string
 }
 
+var groups = make(map[string]*Group)
+
 // 그룹채팅방 만들기
-func createGroup(currentGroup *Group, conn net.Conn, groupName string, username string) {
+func createGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
 	mu.Lock()
 	if _, ok := groups[groupName]; !ok {
 		newGroup := &Group{
@@ -29,14 +31,16 @@ func createGroup(currentGroup *Group, conn net.Conn, groupName string, username 
 			newGroup.Messages <- fmt.Sprintf("%s created and joined the group.\n", username)
 		}()
 		go broadcastGroupMessages(newGroup)
+		return currentGroup
 	} else {
 		mu.Unlock()
 		conn.Write([]byte(fmt.Sprintf("Group '%s' already exists. Join it using '/join <group_name>'.\n", groupName)))
+		return currentGroup
 	}
 }
 
 // 그룹채팅방 참여하
-func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username string) {
+func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
 	mu.Lock()
 	if group, ok := groups[groupName]; ok {
 		group.Members[conn] = struct{}{}
@@ -46,9 +50,11 @@ func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username st
 		go func() {
 			group.Messages <- fmt.Sprintf("%s joined the group.\n", username)
 		}()
+		return currentGroup
 	} else {
 		mu.Unlock()
 		conn.Write([]byte(fmt.Sprintf("Group '%s' does not exist. Create it using '/create <group_name>'.\n", groupName)))
+		return currentGroup
 	}
 }
 

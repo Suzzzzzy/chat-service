@@ -7,7 +7,6 @@ import (
 	"sync"
 )
 
-var groups = make(map[string]*Group)
 var mu sync.Mutex
 
 func handleClient(conn net.Conn) {
@@ -50,7 +49,7 @@ func handleClient(conn net.Conn) {
 		} else if strings.HasPrefix(message, "/create ") {
 			groupName := trimPrefix(message, "/create ")
 
-			createGroup(currentGroup, conn, groupName, username)
+			currentGroup = createGroup(currentGroup, conn, groupName, username)
 
 		} else if strings.HasPrefix(message, "/list") {
 			getGroupList(conn)
