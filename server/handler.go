@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var clients = make(map[net.Conn]string)
+
 func handleClient(conn net.Conn) {
 	defer conn.Close()
 
@@ -24,8 +26,9 @@ func handleClient(conn net.Conn) {
 		if err != nil {
 			fmt.Printf("Client %s disconnected.\n", clientAddr)
 			if currentGroup != nil {
-				leaveGroup(currentGroup, conn)
+				LeaveGroup(currentGroup, conn)
 			}
+			delete(clients, conn)
 			return
 		}
 
@@ -33,26 +36,33 @@ func handleClient(conn net.Conn) {
 		message = strings.TrimSpace(message)
 
 		if strings.HasPrefix(message, "/setusername ") {
-			username = trimPrefix(message, "/setusername")
+			username = ExtractString(message, "/setusername")
 
 			conn.Write([]byte(fmt.Sprintf("Your username has been set to: %s\n", username)))
 
-		} else if strings.HasPrefix(message, "/join ") {
-			groupName := trimPrefix(message, "/join ")
+			TrackClient(conn, username)
 
-			currentGroup = joinGroup(currentGroup, conn, groupName, username)
+		} else if strings.HasPrefix(message, "/join ") {
+			groupName := ExtractString(message, "/join ")
+
+			currentGroup = JoinGroup(currentGroup, conn, groupName, username)
 
 		} else if strings.HasPrefix(message, "/create ") {
-			groupName := trimPrefix(message, "/create ")
+			groupName := ExtractString(message, "/create ")
 
-			currentGroup = createGroup(currentGroup, conn, groupName, username)
+			currentGroup = CreateGroup(currentGroup, conn, groupName, username)
 
 		} else if strings.HasPrefix(message, "/list") {
-			getGroupList(conn)
+			GetGroupList(conn)
 
 		} else if strings.HasPrefix(message, "/leave") {
 			currentGroup.Messages <- fmt.Sprintf("%s has left the chat room👋\n", username)
-			leaveGroup(currentGroup, conn)
+			LeaveGroup(currentGroup, conn)
+			currentGroup = nil
+
+		} else if strings.HasPrefix(message, "/all ") {
+			allMessage := ExtractString(message, "/all")
+			BroadcastMessage(username, allMessage)
 
 		} else if currentGroup != nil {
 			go func() {

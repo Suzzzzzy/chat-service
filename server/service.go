@@ -17,8 +17,8 @@ type Group struct {
 
 var groups = make(map[string]*Group)
 
-// 그룹채팅방 만들기
-func createGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
+// CreateGroup 그룹채팅방 만들기
+func CreateGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -40,7 +40,7 @@ func createGroup(currentGroup *Group, conn net.Conn, groupName string, username 
 
 		newGroup.Messages <- fmt.Sprintf("%s created and joined the group.\n", username)
 
-		go broadcastGroupMessages(newGroup)
+		go BroadcastGroupMessages(newGroup)
 		return currentGroup
 	} else {
 		conn.Write([]byte(fmt.Sprintf("Group '%s' already exists. Join it using '/join <group_name>'.\n", groupName)))
@@ -49,8 +49,8 @@ func createGroup(currentGroup *Group, conn net.Conn, groupName string, username 
 
 }
 
-// 그룹채팅방 참여
-func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
+// JoinGroup 그룹채팅방 참여
+func JoinGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -73,8 +73,9 @@ func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username st
 	}
 }
 
-// 그룹채팅방 나가기
-func leaveGroup(group *Group, conn net.Conn) {
+// LeaveGroup 그룹채팅방 나가기
+func LeaveGroup(group *Group, conn net.Conn) {
+
 	mu.Lock()
 	delete(group.Members, conn)
 	if len(group.Members) == 0 {
@@ -85,8 +86,8 @@ func leaveGroup(group *Group, conn net.Conn) {
 	mu.Unlock()
 }
 
-// 그룹채팅방에 메세지 보내기
-func broadcastGroupMessages(group *Group) {
+// BroadcastGroupMessages 그룹채팅방에 메세지 보내기
+func BroadcastGroupMessages(group *Group) {
 	for message := range group.Messages {
 		for conn := range group.Members {
 			conn.Write([]byte(message + "\n"))
@@ -94,8 +95,8 @@ func broadcastGroupMessages(group *Group) {
 	}
 }
 
-// 전체 그룹 채팅방 리스트 조회
-func getGroupList(conn net.Conn) {
+// GetGroupList 전체 그룹 채팅방 리스트 조회
+func GetGroupList(conn net.Conn) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -119,4 +120,17 @@ func getGroupList(conn net.Conn) {
 
 		conn.Write([]byte(message + "\n"))
 	}
+}
+
+// BroadcastMessage 모든 사용자에게 메세지 보내기
+func BroadcastMessage(sender, message string) {
+	for client, username := range clients {
+		if client != nil && username != sender {
+			client.Write([]byte(fmt.Sprintf("%s: %s\n", sender, message)))
+		}
+	}
+}
+
+func TrackClient(conn net.Conn, username string) {
+	clients[conn] = username
 }
