@@ -3,7 +3,11 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
+	"sync"
 )
+
+var mu sync.Mutex
 
 type Group struct {
 	Name     string
@@ -95,16 +99,24 @@ func getGroupList(conn net.Conn) {
 	mu.Lock()
 	defer mu.Unlock()
 
+	var message string
+
 	if len(groups) == 0 {
 		conn.Write([]byte("There are no group chat rooms🥲 \n"))
 	} else {
+		var groupList strings.Builder
+
 		for groupName, group := range groups {
-			conn.Write([]byte("* " + groupName + " ( Members: "))
-			// 채팅방의 참여 멤버 리스트 출력
+			groupList.WriteString("* " + groupName + " (Members: ")
+
 			for _, member := range group.Members {
-				conn.Write([]byte(member + " "))
+				groupList.WriteString(member + " ")
 			}
-			conn.Write([]byte(")\n"))
+			groupList.WriteString(")  ")
 		}
+
+		message = groupList.String()
+
+		conn.Write([]byte(message + "\n"))
 	}
 }

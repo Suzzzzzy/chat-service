@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"sync"
 )
-
-var mu sync.Mutex
 
 func handleClient(conn net.Conn) {
 	defer conn.Close()
