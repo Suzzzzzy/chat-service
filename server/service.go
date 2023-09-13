@@ -74,7 +74,7 @@ func JoinGroup(currentGroup *Group, conn net.Conn, groupName string, username st
 }
 
 // LeaveGroup 그룹채팅방 나가기
-func LeaveGroup(group *Group, conn net.Conn) {
+func LeaveGroup(group *Group, conn net.Conn, username string) *Group {
 
 	mu.Lock()
 	delete(group.Members, conn)
@@ -83,7 +83,9 @@ func LeaveGroup(group *Group, conn net.Conn) {
 		delete(groups, group.Name)
 	}
 	conn.Write([]byte("Left the chat room🚪 \n"))
+	group.Messages <- fmt.Sprintf("%s has left the chat room👋\n", username)
 	mu.Unlock()
+	return nil
 }
 
 // BroadcastGroupMessages 그룹채팅방에 메세지 보내기
@@ -126,7 +128,7 @@ func GetGroupList(conn net.Conn) {
 func BroadcastMessage(sender, message string) {
 	for client, username := range clients {
 		if client != nil && username != sender {
-			client.Write([]byte(fmt.Sprintf("%s: %s\n", sender, message)))
+			client.Write([]byte(fmt.Sprintf("'%s' to all 🔊  %s\n", sender, message)))
 		}
 	}
 }
