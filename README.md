@@ -1,4 +1,4 @@
-
+![1](https://github.com/iconloop-codingtest/Suzzzzzy/assets/97580836/e8f29b9c-9293-4f13-906e-2896b95fd4e7)
 # 실행 방법
 server 폴더에서 서버를 실행시키고, client 폴더에서 클라이언트를 실행시킵니다.
 
@@ -13,7 +13,6 @@ $ go run client/main.go -username [username]
 ```
 
 # 사용자 가이드
-
 
 1. 채팅방 만들기  
 '/create + 채팅방 이름' 명령어를 입력하여 채팅방을 만듭니다.
@@ -54,3 +53,9 @@ $ /all [message]
 
 6. 시간 알리미
 - 매 5분 마다 시간 정보가 전송됩니다.
+
+# 시연
+![Uploading 1.gif…]()
+
+![2](https://github.com/iconloop-codingtest/Suzzzzzy/assets/97580836/13c9709f-186e-4411-a482-b93f628372fd)
+
