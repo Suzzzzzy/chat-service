@@ -58,14 +58,12 @@ func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username st
 	if group, ok := groups[groupName]; ok {
 		group.Members[conn] = username
 		currentGroup = group
-		mu.Unlock()
 		conn.Write([]byte(fmt.Sprintf("Joined group '%s'\n", groupName)))
 		go func() {
 			group.Messages <- fmt.Sprintf("%s joined the group.\n", username)
 		}()
 		return currentGroup
 	} else {
-		mu.Unlock()
 		conn.Write([]byte(fmt.Sprintf("Group '%s' does not exist. Create it using '/create <group_name>'.\n", groupName)))
 		return currentGroup
 	}
@@ -79,6 +77,7 @@ func leaveGroup(group *Group, conn net.Conn) {
 		close(group.Messages)
 		delete(groups, group.Name)
 	}
+	conn.Write([]byte("Left the chat room🚪 \n"))
 	mu.Unlock()
 }
 
@@ -99,14 +98,13 @@ func getGroupList(conn net.Conn) {
 	if len(groups) == 0 {
 		conn.Write([]byte("There are no group chat rooms🥲 \n"))
 	} else {
-		//conn.Write([]byte(fmt.Sprintf("Here is the list of %d available chat rooms🙌 \n", len(groups))))
 		for groupName, group := range groups {
-			conn.Write([]byte("* " + groupName + " (Members: "))
+			conn.Write([]byte("* " + groupName + " ( Members: "))
 			// 채팅방의 참여 멤버 리스트 출력
 			for _, member := range group.Members {
 				conn.Write([]byte(member + " "))
 			}
-			conn.Write([]byte("\n"))
+			conn.Write([]byte(")\n"))
 		}
 	}
 }

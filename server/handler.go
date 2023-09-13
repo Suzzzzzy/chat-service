@@ -18,7 +18,6 @@ func handleClient(conn net.Conn) {
 	var username string
 
 	conn.Write([]byte("Welcome to the chat server!\n"))
-	conn.Write([]byte("Enter '/join <group_name>' to join a group.\n"))
 
 	var currentGroup *Group
 
@@ -53,6 +52,10 @@ func handleClient(conn net.Conn) {
 
 		} else if strings.HasPrefix(message, "/list") {
 			getGroupList(conn)
+
+		} else if strings.HasPrefix(message, "/leave") {
+			currentGroup.Messages <- fmt.Sprintf("%s has left the chat room👋\n", username)
+			leaveGroup(currentGroup, conn)
 
 		} else if currentGroup != nil {
 			go func() {
