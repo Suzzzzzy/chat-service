@@ -74,7 +74,11 @@ func handleClient(conn net.Conn) {
 				GetGroupList(conn)
 
 			} else if strings.HasPrefix(message, "/leave") {
-				currentGroup = LeaveGroup(currentGroup, conn, username)
+				if currentGroup == nil {
+					conn.Write([]byte("You are not in any group \n"))
+				} else {
+					currentGroup = LeaveGroup(currentGroup, conn, username)
+				}
 
 			} else if strings.HasPrefix(message, "/all ") {
 				allMessage := ExtractString(message, "/all")
