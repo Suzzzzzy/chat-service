@@ -39,12 +39,11 @@ func createGroup(currentGroup *Group, conn net.Conn, groupName string, username 
 	}
 }
 
-// 그룹채팅방 참여하
+// 그룹채팅방 참여
 func joinGroup(currentGroup *Group, conn net.Conn, groupName string, username string) *Group {
 	mu.Lock()
 	if group, ok := groups[groupName]; ok {
 		group.Members[conn] = struct{}{}
-		currentGroup = group
 		mu.Unlock()
 		conn.Write([]byte(fmt.Sprintf("Joined group '%s'\n", groupName)))
 		go func() {

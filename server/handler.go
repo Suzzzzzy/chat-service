@@ -44,7 +44,7 @@ func handleClient(conn net.Conn) {
 		} else if strings.HasPrefix(message, "/join ") {
 			groupName := trimPrefix(message, "/join ")
 
-			joinGroup(currentGroup, conn, groupName, username)
+			currentGroup = joinGroup(currentGroup, conn, groupName, username)
 
 		} else if strings.HasPrefix(message, "/create ") {
 			groupName := trimPrefix(message, "/create ")
