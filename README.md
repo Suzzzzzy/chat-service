@@ -55,9 +55,10 @@ $ /all [message]
 - 매 5분 마다 시간 정보가 전송됩니다.
 
 # 시연
-1. 
+1.  
 ![1](https://github.com/Suzzzzzy/chat-service/assets/97580836/6211582a-2c90-4537-9a90-76d7dba675d0)  
-2.
+
+2.  
 ![2](https://github.com/Suzzzzzy/chat-service/assets/97580836/cbb9df07-e2e4-47a7-98fe-5eff30d0c20f)
 
 
